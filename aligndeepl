@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import time, sys
+
+# url の指定
+
+url = "https://www.deepl.com/ja/translator"
+
+# セレクタの指定
+
+input_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--source > div.lmt__textarea_container > div > textarea"
+output_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container > div.lmt__translations_as_text > p > button.lmt__translations_as_text__text_btn"
+
+# 上限文字数
+
+maxchar = 4800
+
+# 関数
+
+def alignParagraph(txt, index):
+    for (i, sep) in enumerate(index):
+        if (i == 0):
+            rslt = " ".join(txt[:sep])
+            if rslt:
+                yield rslt
+        else:
+            rslt = " ".join(txt[index[i - 1] + 1 : sep])
+            if rslt:
+                yield rslt
+            if (i + 1 == len(index)):
+                rslt = " ".join(txt[sep + 1 :])
+                if rslt:
+                    yield rslt
+
+def splitParagraph(txt, n):
+    for strings in txt:
+        # パラグラフが文字数の上限を上回る場合
+        if (len(strings) > n):
+
+            # パラグラフを "." で分割
+            strIter = (x.strip() for x in strings.split(".") if x.strip())
+
+            # 対象の初期化
+            trg = ""
+
+            # 以下、エラーが生じたら対象を出力
+            try:
+                while True:
+
+                    # パラグラフから文をひとつ抽出
+                    sentence = next(strIter)
+
+                    # 対象が文字数上限を超過するまで対象に文を追加
+                    while (len(trg) + len(sentence) + 1 < n):
+                        trg = trg + " " + sentence + "."
+                        sentence = next(strIter)
+
+                    # 文字列の出力
+                    if trg:
+                        yield trg.strip()
+
+                    # 対象の初期化
+                    trg = sentence + "."
+
+            except:
+
+                # 対象が空文字でない場合のみ出力
+                if trg:
+                    yield trg.strip()
+
+        # 上回らない場合
+        else:
+            yield strings
+
+def doDeepl(txt, driver, url, input_selector, output_selector):
+
+    try:
+
+        # URL の取得
+        driver.get(url)
+
+        # 入力画面に文字を入力する
+        driver.find_element_by_css_selector(input_selector).send_keys(txt)
+
+        # 出力画面から訳を抽出する
+        outputText = ""
+        while not outputText:
+            outputText = driver.find_element_by_css_selector(output_selector).get_attribute("textContent")
+            time.sleep(1)
+
+        # 出力
+        return outputText
+
+    except:
+
+        # 失敗した場合
+        return "`翻訳に失敗しました。`"
+
+def alignDeepl(txt, max, url, input_selector, output_selector):
+
+    # 空白の index の取得
+    blankIndex = [i for (i, x) in enumerate(txt) if x == ""]
+
+    # 改行を外す
+    alignedTxt = alignParagraph(txt, blankIndex)
+
+    # 挿入文字列の分割
+    splitTxt = splitParagraph(alignedTxt, max)
+
+    # deepl の適用
+    options = Options()
+    options.add_argument("--headless")
+    with webdriver.Chrome(options = options) as driver:
+
+        for trg in splitTxt:
+            print("> " + trg + "\n")
+            print(doDeepl(trg, driver, url, input_selector, output_selector) + "\n")
+            print("- - -\n")
+
+
+# 実行
+
+if __name__ == "__main__":
+
+    inputData = [x.strip() for x in sys.stdin.readlines()]
+    alignDeepl(inputData, maxchar, url, input_selector, output_selector)
