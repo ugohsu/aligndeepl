@@ -10,12 +10,13 @@ url = "https://www.deepl.com/ja/translator"
 
 # セレクタの指定
 
+login_selector = "body > header > nav > div > div.dl_header_menu_v2__buttons > div.dl_header_menu_v2__login_button > button"
 input_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--source > div.lmt__textarea_container > div > textarea"
 output_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container > div.lmt__translations_as_text > p > button.lmt__translations_as_text__text_btn"
 
 # 上限文字数
 
-maxchar = 4800
+maxchar = 50000
 
 # 関数
 
@@ -74,9 +75,7 @@ def splitParagraph(txt, n):
         else:
             yield strings
 
-def doDeepl(txt, options, url, input_selector, output_selector):
-    # 毎回ウェブドライバを開きなおす設定に変更
-    with webdriver.Chrome(options = options) as driver:
+def doDeepl(txt, driver, url, input_selector, output_selector):
         try:
 
             # URL の取得
@@ -87,7 +86,7 @@ def doDeepl(txt, options, url, input_selector, output_selector):
 
             # 出力画面から訳を抽出する
             outputText = ""
-            for i in range(30):
+            for i in range(10):
 
                 # 翻訳を取得
                 outputText = driver.find_element_by_css_selector(output_selector).get_attribute("textContent")
@@ -122,13 +121,20 @@ def alignDeepl(txt, max, url, input_selector, output_selector):
     # 挿入文字列の分割
     splitTxt = splitParagraph(alignedTxt, max)
 
-    # deepl の適用
+    # ヘッドレスの設定
     options = Options()
     options.add_argument("--headless")
-    for trg in splitTxt:
-        print("> " + trg + "\n")
-        print(doDeepl(trg, options, url, input_selector, output_selector) + "\n")
-        print("- - -\n")
+
+    # deepl の適用
+    with webdriver.Chrome(options = options) as driver:
+
+        # Pro へのログイン
+        # driver.get(url)
+
+        for trg in splitTxt:
+            print("> " + trg + "\n")
+            print(doDeepl(trg, driver, url, input_selector, output_selector) + "\n")
+            print("- - -\n")
 
 
 # 実行
