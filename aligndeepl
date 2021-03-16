@@ -2,7 +2,7 @@
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import time, sys
+import time, sys, os, json
 
 # url の指定
 
@@ -129,7 +129,23 @@ def alignDeepl(txt, max, url, input_selector, output_selector):
     with webdriver.Chrome(options = options) as driver:
 
         # Pro へのログイン
-        # driver.get(url)
+        try:
+            # 設定ファイルの取得 (取得できない場合ログインしない)
+            confPath = os.path.join(os.environ["HOME"], ".aligndeepl")
+            with open(confPath, "r") as rf:
+                conf = json.load(rf)
+
+            # ログインの実行
+            driver.get(url)
+            driver.find_element_by_css_selector(login_selector).click()
+            driver.find_element_by_name("login-email").send_keys(conf["id"])
+            driver.find_element_by_name("login-password").send_keys(conf["password"])
+            driver.find_element_by_name("login-email").submit()
+            time.sleep(5)
+
+        # 上のどこかでエラーがでた場合はそのまま次へ進む
+        except:
+            pass
 
         for trg in splitTxt:
             print("> " + trg + "\n")
