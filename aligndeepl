@@ -74,29 +74,42 @@ def splitParagraph(txt, n):
         else:
             yield strings
 
-def doDeepl(txt, driver, url, input_selector, output_selector):
+def doDeepl(txt, options, url, input_selector, output_selector):
+    # 毎回ウェブドライバを開きなおす設定に変更
+    with webdriver.Chrome(options = options) as driver:
+        try:
 
-    try:
+            # URL の取得
+            driver.get(url)
 
-        # URL の取得
-        driver.get(url)
+            # 入力画面に文字を入力する
+            driver.find_element_by_css_selector(input_selector).send_keys(txt)
 
-        # 入力画面に文字を入力する
-        driver.find_element_by_css_selector(input_selector).send_keys(txt)
+            # 出力画面から訳を抽出する
+            outputText = ""
+            for i in range(30):
 
-        # 出力画面から訳を抽出する
-        outputText = ""
-        while not outputText:
-            outputText = driver.find_element_by_css_selector(output_selector).get_attribute("textContent")
-            time.sleep(1)
+                # 翻訳を取得
+                outputText = driver.find_element_by_css_selector(output_selector).get_attribute("textContent")
 
-        # 出力
-        return outputText
+                # 取得できた場合はループを出る
+                if outputText:
+                    break
 
-    except:
+                # 1 秒休止
+                time.sleep(1)
 
-        # 失敗した場合
-        return "`翻訳に失敗しました。`"
+            # 規定回数のループで翻訳を取得できなかった場合
+            else:
+                outputText = "`タイムアウトしました。`"
+
+            # 出力
+            return outputText
+
+        except:
+
+            # 失敗した場合
+            return "`翻訳に失敗しました。`"
 
 def alignDeepl(txt, max, url, input_selector, output_selector):
 
@@ -112,12 +125,10 @@ def alignDeepl(txt, max, url, input_selector, output_selector):
     # deepl の適用
     options = Options()
     options.add_argument("--headless")
-    with webdriver.Chrome(options = options) as driver:
-
-        for trg in splitTxt:
-            print("> " + trg + "\n")
-            print(doDeepl(trg, driver, url, input_selector, output_selector) + "\n")
-            print("- - -\n")
+    for trg in splitTxt:
+        print("> " + trg + "\n")
+        print(doDeepl(trg, options, url, input_selector, output_selector) + "\n")
+        print("- - -\n")
 
 
 # 実行
