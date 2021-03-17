@@ -16,7 +16,7 @@ output_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > d
 
 # 上限文字数
 
-maxchar = 50000
+maxchar = 5000
 
 # 関数
 
