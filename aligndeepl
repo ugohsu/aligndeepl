@@ -10,9 +10,9 @@ url = "https://www.deepl.com/ja/translator"
 
 # セレクタの指定
 
-login_selector = "body > header > nav > div > div.dl_header_menu_v2__buttons > div.dl_header_menu_v2__login_button > button"
-input_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--source > div.lmt__textarea_container > div > textarea"
-output_selector = "#dl_translator > div.lmt__text > div.lmt__sides_container > div.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container > div.lmt__translations_as_text > p > button.lmt__translations_as_text__text_btn"
+login_selector = "body > header > nav > div > div.dl_header_menu_v2__buttons > div.dl_header_menu_v2__login_button_simple > button"
+input_selector = "#panelTranslateText > div.lmt__sides_container > section.lmt__side_container.lmt__side_container--source > div.lmt__textarea_container > div.lmt__inner_textarea_container > textarea"
+output_selector = "#panelTranslateText > div.lmt__sides_container > section.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container > div.lmt__inner_textarea_container > textarea"
 
 # 上限文字数
 
@@ -124,7 +124,7 @@ def alignDeepl(txt, max, url, input_selector, output_selector):
 
     # ヘッドレスの設定
     options = Options()
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
 
     # deepl の適用
     with webdriver.Chrome(options = options) as driver:
