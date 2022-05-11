@@ -12,7 +12,7 @@ url = "https://www.deepl.com/ja/translator"
 
 login_selector = "body > header > nav > div > div.dl_header_menu_v2__buttons > div.dl_header_menu_v2__login_button_simple > button"
 input_selector = "#panelTranslateText > div.lmt__sides_container > section.lmt__side_container.lmt__side_container--source > div.lmt__textarea_container > div.lmt__inner_textarea_container > textarea"
-output_selector = "#panelTranslateText > div.lmt__sides_container > section.lmt__side_container.lmt__side_container--target > div.lmt__textarea_container > div.lmt__inner_textarea_container > textarea"
+output_selector = "#target-dummydiv"
 
 # 上限文字数
 
@@ -93,7 +93,7 @@ def doDeepl(txt, driver, url, input_selector, output_selector):
                 outputText = driver.find_element_by_css_selector(output_selector).get_attribute("textContent")
 
                 # 取得できた場合はループを出る
-                if outputText:
+                if outputText.strip():
                     break
 
                 # 1 秒休止
